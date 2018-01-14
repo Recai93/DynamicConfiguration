@@ -1,5 +1,6 @@
 package service;
 
+import com.mongodb.BasicDBObject;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import model.ConfRecord;
@@ -27,39 +28,58 @@ public class WebDemoService {
         return getConfRecords();
     }
 
-    public void save(ConfRecord confRecord){
+    public List<ConfRecord> search(String searchText) {
+        List<ConfRecord> list = new ArrayList<>();
+        MongoCollection<Document> collection = Util.getCollection("mongodb://admin:admin@ds247357.mlab.com:47357/confdb");
+        BasicDBObject regexQuery = new BasicDBObject();
+        regexQuery.put("Name",
+                new BasicDBObject("$regex", ".*" + searchText + ".*")
+                        .append("$options", "i"));
+        MongoCursor<Document> mongoCursor = collection.find(regexQuery).iterator();
+        try {
+            while (mongoCursor.hasNext()) {
+                Document doc = mongoCursor.next();
+                list.add(createConfRecord(doc));
+            }
+        } finally {
+            mongoCursor.close();
+        }
+        return list;
+    }
+
+    public void save(ConfRecord confRecord) {
         confRecord.setId(getNewRecordId());
         Document document = createDocument(confRecord);
         MongoCollection<Document> collection = Util.getCollection(connectionString);
         collection.insertOne(document);
     }
 
-    public void update(ConfRecord confRecord){
+    public void update(ConfRecord confRecord) {
         Document document = createDocument(confRecord);
         Document updateQuery = new Document(Constants.PROPERTY_ID, confRecord.getId());
         MongoCollection<Document> collection = Util.getCollection(connectionString);
         collection.updateOne(updateQuery, new Document("$set", document));
     }
 
-    public void delete(Integer id){
+    public void delete(Integer id) {
         MongoCollection<Document> collection = Util.getCollection(connectionString);
         collection.deleteOne(new Document(Constants.PROPERTY_ID, id));
     }
 
     public ConfRecord findById(Integer id) {
         List<ConfRecord> confRecords = getConfRecords();
-        for(ConfRecord cr : confRecords){
-            if(cr.getId().equals(id)){
+        for (ConfRecord cr : confRecords) {
+            if (cr.getId().equals(id)) {
                 return cr;
             }
         }
         return null;
     }
 
-    public boolean isExist(String name){
+    public boolean isExist(String name) {
         List<ConfRecord> confRecords = getConfRecords();
-        for(ConfRecord confRecord : confRecords){
-            if(confRecord.getName().equals(name)){
+        for (ConfRecord confRecord : confRecords) {
+            if (confRecord.getName().equals(name)) {
                 return true;
             }
         }
@@ -101,7 +121,10 @@ public class WebDemoService {
         return confRecord;
     }
 
-    private Document createDocument(ConfRecord confRecord){
+    private Document createDocument(ConfRecord confRecord) {
+        if(confRecord.getType().equals("boolean")){
+            confRecord.setValue(confRecord.getValue().toLowerCase());
+        }
         return new Document(Constants.PROPERTY_ID, confRecord.getId())
                 .append(Constants.PROPERTY_NAME, confRecord.getName())
                 .append(Constants.PROPERTY_TYPE, confRecord.getType())
@@ -110,11 +133,11 @@ public class WebDemoService {
                 .append(Constants.PROPERTY_APPLICATION_NAME, confRecord.getApplicationName());
     }
 
-    private int getNewRecordId(){
+    private int getNewRecordId() {
         List<ConfRecord> confRecords = getConfRecords();
         int id = 0;
-        for(ConfRecord confRecord : confRecords){
-            if(confRecord.getId() > id){
+        for (ConfRecord confRecord : confRecords) {
+            if (confRecord.getId() > id) {
                 id = confRecord.getId();
             }
         }

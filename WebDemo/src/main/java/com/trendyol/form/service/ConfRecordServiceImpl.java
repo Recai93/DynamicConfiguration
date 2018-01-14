@@ -19,6 +19,11 @@ public class ConfRecordServiceImpl implements ConfRecordService {
         return webDemoService.findAll();
     }
 
+    @Override
+    public List<ConfRecord> search(String searchText) {
+        return webDemoService.search(searchText);
+    }
+
     public void delete(Integer id) {
         webDemoService.delete(id);
     }

@@ -2,7 +2,6 @@ package com.trendyol.form.web;
 
 import com.trendyol.form.service.ConfRecordService;
 import com.trendyol.form.validator.ConfRecordFormValidator;
-import jar.ConfigurationReader;
 import model.ConfRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,8 +12,10 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 
 @Controller
@@ -46,13 +47,23 @@ public class ConfRecordController {
     @RequestMapping(value = "/confRecords", method = RequestMethod.GET)
     public String showAllConfRecords(Model model) {
         logger.debug("showAllConfRecords()");
-        model.addAttribute("confRecords", confRecordService.findAll());
+        if (!model.asMap().containsKey("confRecords")) {
+            model.addAttribute("confRecords", confRecordService.findAll());
+        }
         return "confRecords/list";
+    }
+
+    @RequestMapping(value = "/confRecords/search", method = RequestMethod.GET)
+    public ModelAndView loginValidate(HttpServletRequest request, RedirectAttributes redir) {
+        ModelAndView modelAndView = new ModelAndView();
+        modelAndView.setViewName("redirect:/confRecords");
+        redir.addFlashAttribute("confRecords", confRecordService.search(request.getParameter("searchText")));
+        return modelAndView;
     }
 
     @RequestMapping(value = "/confRecords", method = RequestMethod.POST)
     public String saveOrUpdateConfRecord(@ModelAttribute("confRecord") @Validated ConfRecord confRecord,
-                                   BindingResult result, Model model, final RedirectAttributes redirectAttributes) {
+                                         BindingResult result, Model model, final RedirectAttributes redirectAttributes) {
         logger.debug("saveOrUpdateConfRecord() : {}", confRecord);
         if (result.hasErrors()) {
             populateDefaultModel(model);
@@ -65,7 +76,7 @@ public class ConfRecordController {
                 redirectAttributes.addFlashAttribute("msg", "Record updated successfully!");
             }
             confRecordService.saveOrUpdate(confRecord);
-            return "redirect:/confRecords/";
+            return "redirect:/confRecords";
         }
     }
 
@@ -86,7 +97,7 @@ public class ConfRecordController {
     public String showUpdateConfRecordForm(@PathVariable("id") int id, Model model) {
         logger.debug("showUpdateConfRecordForm() : {}", id);
         ConfRecord confRecord = confRecordService.findById(id);
-		model.addAttribute("confRecord", confRecord);
+        model.addAttribute("confRecord", confRecord);
         populateDefaultModel(model);
         return "confRecords/confRecordForm";
     }
@@ -94,26 +105,14 @@ public class ConfRecordController {
     @RequestMapping(value = "/confRecords/{id}/delete", method = RequestMethod.POST)
     public String deleteConfRecord(@PathVariable("id") int id, final RedirectAttributes redirectAttributes) {
         logger.debug("deleteConfRecord() : {}", id);
-		confRecordService.delete(id);
+        confRecordService.delete(id);
         redirectAttributes.addFlashAttribute("css", "success");
         redirectAttributes.addFlashAttribute("msg", "User is deleted!");
         return "redirect:/confRecords";
     }
 
-    @RequestMapping(value = "/confRecords/{id}", method = RequestMethod.GET)
-    public String showConfRecord(@PathVariable("id") int id, Model model) {
-        logger.debug("showConfRecord() id: {}", id);
-		ConfRecord confRecord = confRecordService.findById(id);
-		if (confRecord == null) {
-			model.addAttribute("css", "danger");
-			model.addAttribute("msg", "Record not found");
-		}
-		model.addAttribute("confRecord", confRecord);
-        return "confRecords/show";
-    }
-
     private void populateDefaultModel(Model model) {
-        model.addAttribute("types", Arrays.asList("string","boolean","integer","double"));
+        model.addAttribute("types", Arrays.asList("string", "boolean", "integer", "double"));
     }
 
 }

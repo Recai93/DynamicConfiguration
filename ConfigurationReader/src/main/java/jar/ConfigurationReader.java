@@ -79,25 +79,7 @@ public class ConfigurationReader {
         String propertyName = doc.get(Constants.PROPERTY_NAME).toString();
         String propertyType = doc.get(Constants.PROPERTY_TYPE).toString();
         String propertyValue = doc.get(Constants.PROPERTY_VALUE).toString();
-        Object convertedVal = null;
-        try {
-            switch (propertyType) {
-                case "boolean":
-                    convertedVal = Boolean.parseBoolean(propertyValue);
-                    break;
-                case "double":
-                    convertedVal = Double.parseDouble(propertyValue);
-                    break;
-                case "integer":
-                    convertedVal = Integer.parseInt(propertyValue);
-                    break;
-                case "string":
-                    convertedVal = propertyValue;
-                    break;
-            }
-        } catch (NumberFormatException e) {
-            logger.error("Error while parsing property value.", e);
-        }
+        Object convertedVal = Util.parseValue(propertyType, propertyValue);
         confMap.put(propertyName, convertedVal);
     }
 

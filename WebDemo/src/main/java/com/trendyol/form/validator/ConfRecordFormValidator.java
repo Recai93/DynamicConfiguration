@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.Validator;
+import utils.Util;
 
 @Component
 public class ConfRecordFormValidator implements Validator {
@@ -20,10 +21,19 @@ public class ConfRecordFormValidator implements Validator {
 
 	public void validate(Object target, Errors errors) {
 		ConfRecord confRecord = (ConfRecord) target;
-		ValidationUtils.rejectIfEmpty(errors, "isActive", "Valid.confRecordForm.isActive");
-		ValidationUtils.rejectIfEmpty(errors, "type", "Valid.confRecordForm.type");
+		ValidationUtils.rejectIfEmpty(errors, "isActive", "Required.confRecordForm.isActive");
+		ValidationUtils.rejectIfEmpty(errors, "type", "Required.confRecordForm.type");
+		ValidationUtils.rejectIfEmpty(errors, "value", "Required.confRecordForm.value");
+		ValidationUtils.rejectIfEmpty(errors, "name", "Required.confRecordForm.name");
+		ValidationUtils.rejectIfEmpty(errors, "applicationName", "Required.confRecordForm.applicationName");
 		if(confRecord.getId() == null && confRecordService.isExist(confRecord.getName())){
 			errors.rejectValue("name", "Valid.confRecordForm.name");
+		}
+		if(confRecord.getType() != null && confRecord.getValue() != null && !confRecord.getValue().isEmpty()){
+			Object obj = Util.parseValue(confRecord.getType(), confRecord.getValue());
+			if(obj == null){
+				errors.rejectValue("value", "Valid.confRecordForm.value");
+			}
 		}
 	}
 }

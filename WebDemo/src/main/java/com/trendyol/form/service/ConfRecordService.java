@@ -10,6 +10,8 @@ public interface ConfRecordService {
 	
 	List<ConfRecord> findAll();
 
+	List<ConfRecord> search(String searchText);
+
 	void saveOrUpdate(ConfRecord confRecord);
 	
 	void delete(Integer id);

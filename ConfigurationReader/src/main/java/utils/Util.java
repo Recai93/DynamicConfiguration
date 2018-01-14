@@ -33,4 +33,28 @@ public class Util {
         MongoDatabase db = client.getDatabase(uri.getDatabase());
         return db.getCollection(Constants.COLLECTION_NAME);
     }
+
+    public static Object parseValue(String propertyType, String propertyValue) {
+        Object convertedVal = null;
+        try {
+            switch (propertyType) {
+                case "boolean":
+                    convertedVal = propertyValue.toLowerCase().equals("true") || propertyValue.toLowerCase().equals("false")
+                            ? Boolean.parseBoolean(propertyValue.toLowerCase()) : null;
+                    break;
+                case "double":
+                    convertedVal = Double.parseDouble(propertyValue);
+                    break;
+                case "integer":
+                    convertedVal = Integer.parseInt(propertyValue);
+                    break;
+                case "string":
+                    convertedVal = propertyValue;
+                    break;
+            }
+        } catch (NumberFormatException e) {
+            logger.error("Error while parsing property value.", e);
+        }
+        return convertedVal;
+    }
 }

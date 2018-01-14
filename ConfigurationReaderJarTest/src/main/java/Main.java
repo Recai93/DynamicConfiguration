@@ -1,8 +1,5 @@
 import jar.ConfigurationReader;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * Created by rajaee on 1/13/18.
  */
