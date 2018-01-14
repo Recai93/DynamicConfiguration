@@ -30,7 +30,7 @@ public class WebDemoService {
 
     public List<ConfRecord> search(String searchText) {
         List<ConfRecord> list = new ArrayList<>();
-        MongoCollection<Document> collection = Util.getCollection("mongodb://admin:admin@ds247357.mlab.com:47357/confdb");
+        MongoCollection<Document> collection = Util.getCollection(connectionString);
         BasicDBObject regexQuery = new BasicDBObject();
         regexQuery.put("Name",
                 new BasicDBObject("$regex", ".*" + searchText + ".*")
